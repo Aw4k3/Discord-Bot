@@ -1,0 +1,2 @@
+node
+npm run release

@@ -1,14 +1,29 @@
 {
   "name": "discord-bot",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "FakeAwake Discord Bot",
-  "main": "index.js",
+  "main": "./release/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "tsc --build && node ./release/index.js",
+    "build": "tsc --build",
+    "clean": "tsc --build --clean",
+    "start": "node ./release/index.js",
+    "deploy": "node ./release/DeployDev.js",
+    "release": "tsc --build && node ./release/DeployRelease.js && node ./release/index.js"
   },
-  "author": "Awake",
+  "keywords": [],
+  "author": "",
   "license": "ISC",
-  "dependencies": {
+  "devDependencies": {
+    "@types/node": "^20.12.3",
+    "@typescript-eslint/eslint-plugin": "^7.5.0",
+    "@typescript-eslint/parser": "^7.5.0",
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.4.5",
+    "eslint": "^8.57.0",
     "typescript": "^5.4.3"
+  },
+  "dependencies": {
+    "openai": "^4.37.1"
   }
 }
