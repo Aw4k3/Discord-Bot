@@ -1,2 +1,1 @@
-node
 npm run release

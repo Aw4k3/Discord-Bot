@@ -6,6 +6,5 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="src\commands\fun\" />
-    <Folder Include="src\utils\" />
   </ItemGroup>
 </Project>

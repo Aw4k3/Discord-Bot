@@ -1,7 +1,12 @@
 import { SlashCommandBuilder, CommandInteraction, EmbedBuilder, StringSelectMenuBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, ComponentType } from "discord.js";
 
+interface IWaifu {
+    endpoint: string;
+    url: string;
+}
+
 // Key: Channel Id, Value: End Point
-const endpointTracker: Map<string, string> = new Map();
+const endpointTracker: Map<string, IWaifu> = new Map();
 const waifuMenu = new StringSelectMenuBuilder()
     .setCustomId("emdpoint")
     .setPlaceholder("Waifu Type...")
@@ -120,6 +125,11 @@ const rerollButton = new ButtonBuilder()
     .setLabel("Next")
     .setStyle(ButtonStyle.Primary);
 
+const saveImage = new ButtonBuilder()
+    .setCustomId("save_image")
+    .setLabel("Save Image")
+    .setStyle(ButtonStyle.Secondary);
+
 const iLostButton = new ButtonBuilder()
     .setCustomId("i_lost")
     .setLabel("I Lost")
@@ -128,7 +138,10 @@ const iLostButton = new ButtonBuilder()
 const actionRowMenu = new ActionRowBuilder()
     .addComponents(waifuMenu);
 
-const actionRowButtons = new ActionRowBuilder()
+const standardActionRowButtons = new ActionRowBuilder()
+    .addComponents(rerollButton, saveImage, iLostButton);
+
+const saveImageActionRowButtons = new ActionRowBuilder()
     .addComponents(rerollButton, iLostButton);
 
 const instance = new EmbedBuilder()
@@ -139,11 +152,11 @@ const data = new SlashCommandBuilder()
     .setDescription("God I love looking at waifus");
 
 async function execute(interaction: CommandInteraction) {
-    endpointTracker.set(interaction.channelId, "avatar");
-    const response = await fetch(`https://nekos.life/api/v2/img/${endpointTracker.get(interaction.channelId)}`);
+    const response = await fetch(`https://nekos.life/api/v2/img/avatar`);
     const data = await response.json();
+    endpointTracker.set(interaction.channelId, { endpoint: "avatar", url: data.url });
     instance.setImage(data.url);
-    const messageResponse = await interaction.reply({ embeds: [instance], components: [actionRowMenu, actionRowButtons] as any });
+    const messageResponse = await interaction.reply({ embeds: [instance], components: [actionRowMenu, standardActionRowButtons] as any });
     
     const collector = messageResponse.createMessageComponentCollector();
 
@@ -151,24 +164,37 @@ async function execute(interaction: CommandInteraction) {
         switch (i.componentType) {
             case ComponentType.StringSelect:
                 const endpoint = i.values[0];
-                endpointTracker.set(i.channelId, endpoint);
                 const response = await fetch(`https://nekos.life/api/v2/img/${endpoint}`);
                 const data = await response.json();
+                endpointTracker.set(i.channelId, { endpoint: endpoint, url: data.url });
                 instance.setImage(data.url);
-                i.update({ embeds: [instance] })
+                i.update({ embeds: [instance], components: [actionRowMenu, standardActionRowButtons] as any });
                 break;
 
             case ComponentType.Button:
                 switch (i.customId) {
                     case "next":
-                        const response = await fetch(`https://nekos.life/api/v2/img/${endpointTracker.get(interaction.channelId)}`);
-                        const data = await response.json();
-                        instance.setImage(data.url);
-                        i.update({ embeds: [instance] })
+                        {
+                            let { endpoint } = endpointTracker.get(interaction.channelId) as IWaifu;
+                            const response = await fetch(`https://nekos.life/api/v2/img/${endpoint}`);
+                            const data = await response.json();
+                            endpointTracker.set(i.channelId, { endpoint: endpoint, url: data.url });
+                            instance.setImage(data.url);
+                            i.update({ embeds: [instance], components: [actionRowMenu, standardActionRowButtons] as any });
+                        }
                         break;
 
                     case "i_lost":
                         i.reply(`lmao you lost, ${i.member}`);
+                        break;
+
+                    case "save_image":
+                        {
+                            let { url } = endpointTracker.get(interaction.channelId) as IWaifu;
+                            if (i.channel && url)
+                                i.channel.send(url);
+                            i.update({ embeds: [instance], components: [actionRowMenu, saveImageActionRowButtons] as any })
+                        }
                         break;
                 }
                 break;

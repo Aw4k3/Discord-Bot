@@ -23,6 +23,13 @@ commandFiles.forEach(commandFile => {
 	try {
 		console.log(`Started refreshing ${commands.length} application (/) commands.`);
 
+		await rest.put(
+			Routes.applicationGuildCommands(process.env.CLIENT_ID as string, process.env.TEST_SERVER_ID as string),
+			{ body: [] },
+		);
+
+		console.log("Deleted all commands for the Bot Testing server.");
+
 		const data: any = await rest.put(
 			Routes.applicationGuildCommands(process.env.CLIENT_ID as string, process.env.TEST_SERVER_ID as string),
 			{ body: commands },

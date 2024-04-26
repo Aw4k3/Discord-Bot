@@ -2,10 +2,15 @@
 import OpenAI from "openai";
 import { logError } from "../../services/Api";
 import { ChatCompletionCreateParamsBase, ChatCompletionMessageParam } from "openai/resources/chat/completions";
+import { Thread } from "openai/resources/beta/threads/threads";
+import { Message } from "openai/resources/beta/threads/messages";
+import { Run } from "openai/resources/beta/threads/runs/runs";
 
 // Key will be the channel ID
-const conversations: Map<string, ChatCompletionMessageParam[]> = new Map<string, ChatCompletionMessageParam[]>();
-const conversationMessageLimit: number = 10;
+const threads: Map<string, Thread> = new Map();
+const messageLimit: number = 10;
+const dateTime = new Date();
+const assistantId = "asst_pXLCP8LRtVSeup8g1SNVPJp7";
 const openAi = new OpenAI({
     apiKey: process.env.OPENAI_TOKEN
 });
@@ -26,30 +31,30 @@ async function execute(interaction: CommandInteraction) {
     
     if (!message) {
         logError("[TextAI] Failed to obtain \"message\" parameter.");
+        await interaction.editReply("Internal Error");
         return;
     }
 
-    const conversation: ChatCompletionMessageParam[] = conversations.get(interaction.channelId) || [{ role: "system", content: "Your name is FakeAwake, you are a casual AI. Use UK English."}];
-    conversation.push({ role: "user", content: message.value as string });
-
-    const response = await openAi.chat.completions.create({
-        model: "gpt-4",
-        max_tokens: 150,
-        messages: conversation
+    const thread: Thread = threads.get(interaction.channelId) || await openAi.beta.threads.create();
+    const threadMessage: Message = await openAi.beta.threads.messages.create(thread.id, {
+        role: "user",
+        content: message.value as string,
+        metadata: {
+            currentDateAndTime: dateTime.toString()
+        }
     });
 
-    const reply = response.choices[0].message.content as string;
+    let run: Run = await openAi.beta.threads.runs.createAndPoll(thread.id, {
+        assistant_id: assistantId,
+        max_completion_tokens: 200
+    });
 
-    if (reply === "") {
-        logError("[TextAI] Failed to generate reply.");
-        await interaction.reply("I don't know (╯°□°)╯︵ ┻━┻");
-        return;
-    } else {
-        await interaction.editReply(reply);
-        conversation.push({ role: "assistant", content: reply });
-        if (conversation.length > conversationMessageLimit) conversation.shift();
-        conversations.set(interaction.channelId, conversation);
+    if (run.status === "completed") {
+        const messages = await openAi.beta.threads.messages.list(run.thread_id);
+        interaction.editReply((messages.data[0].content[0] as any).text.value);
     }
+
+    threads.set(interaction.channelId, thread);
 }
 
 export { data, execute };
