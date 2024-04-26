@@ -10,7 +10,7 @@
     "clean": "tsc --build --clean",
     "start": "node ./release/index.js",
     "deploy": "node ./release/DeployDev.js",
-    "release": "tsc --build && node ./release/DeployRelease.js && node ./release/index.js"
+    "release": "npm i && tsc --build && node ./release/DeployRelease.js && node ./release/index.js"
   },
   "keywords": [],
   "author": "",
