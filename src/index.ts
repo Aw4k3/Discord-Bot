@@ -26,7 +26,7 @@ commandFiles.forEach(commandFile => {
 log(`Found ${commandFiles.length} commands with ${successfulLoads} successfully loaded and ${failedLoads} failures`);
 
 function onReady(): void {
-    console.log(`Logged in as ${client.user?.tag}`);
+    log(`Logged in as ${client.user?.tag}`);
     client.user?.setActivity({
         name: "FakeAwake: Battle Royal",
         type: ActivityType.Competing
@@ -45,6 +45,7 @@ async function onInteraction(interaction: Interaction): Promise<void> {
 
     try {
         await command.execute(interaction);
+        log(`${interaction.user.displayName} executed ${interaction.commandName}`);
     } catch (e: any) {
         logError(e);
         if (interaction.replied || interaction.deferred) {
