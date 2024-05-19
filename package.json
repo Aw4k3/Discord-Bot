@@ -25,6 +25,7 @@
     "typescript": "^5.4.3"
   },
   "dependencies": {
+    "@discordjs/voice": "^0.17.0",
     "axios": "^1.6.8",
     "openai": "^4.37.1"
   }
