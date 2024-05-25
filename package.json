@@ -25,7 +25,9 @@
     "typescript": "^5.4.3"
   },
   "dependencies": {
+    "@aislamov/diffusers.js": "^0.9.3",
     "axios": "^1.6.8",
-    "openai": "^4.37.1"
+    "openai": "^4.37.1",
+    "sharp": "^0.33.4"
   }
 }

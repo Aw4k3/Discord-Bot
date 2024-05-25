@@ -5,6 +5,7 @@ import { AxiosResponse } from "axios";
 import * as Axios from "axios";
 import { pipeline } from "stream/promises";
 
+export const tempPath: string = "./temp/";
 export async function downloadFile(url: string, filePath: string) {
     let wstream = fs.createWriteStream(filePath);
     if (!fs.existsSync(path.dirname(filePath))) fs.mkdirSync(path.dirname(filePath), { recursive: true });
