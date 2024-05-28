@@ -1,6 +1,6 @@
 ﻿import { SlashCommandBuilder, CommandInteraction } from "discord.js";
 import OpenAI from "openai";
-import { DiffusionPipeline } from '@aislamov/diffusers.js'
+import { DiffusionPipeline } from "@aislamov/diffusers.js";
 import sharp from "sharp";
 import { logError } from "../../services/Api";
 import { deleteFile, downloadFile, tempPath } from "../../utils/FileManager";
