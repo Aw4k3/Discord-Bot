@@ -4,13 +4,11 @@
   "description": "FakeAwake Discord Bot",
   "main": "./release/index.js",
   "scripts": {
-    "test": "tsc --build && node ./release/index.js",
-    "full-test": "tsc --build && node ./release/DeployDev.js && node ./release/index.js",
+    "dev": "tsc --build && node ./release/index.js",
+    "deploy-dev": "tsc --build && node ./release/DeployDev.js && node ./release/index.js",
+    "start": "npm i && tsc --build && node ./release/DeployRelease.js && node ./release/index.js",
     "build": "tsc --build",
-    "clean": "tsc --build --clean",
-    "start": "node ./release/index.js",
-    "deploy": "node ./release/DeployDev.js",
-    "release": "npm i && tsc --build && node ./release/DeployRelease.js && node ./release/index.js"
+    "clean": "tsc --build --clean"
   },
   "keywords": [],
   "author": "",
@@ -26,6 +24,6 @@
   },
   "dependencies": {
     "axios": "^1.6.8",
-    "openai": "^4.37.1"
+    "openai": "^4.48.2"
   }
 }
