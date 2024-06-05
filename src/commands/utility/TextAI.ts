@@ -70,9 +70,23 @@ async function execute(interaction: CommandInteraction) {
         max_completion_tokens: 200
     });
 
-    if (run.status === "completed") {
-        const messages = await openAi.beta.threads.messages.list(run.thread_id);
-        interaction.editReply((messages.data[0].content[0] as any).text.value);
+    switch (run.status) {
+        case "completed":
+            const messages = await openAi.beta.threads.messages.list(run.thread_id);
+            interaction.editReply((messages.data[0].content[0] as any).text.value);
+            break;
+
+        case "cancelled":
+            logError("[TextAI] Run was cancelled.");
+            break;
+
+        case "failed":
+            logError("[TextAI] Run failed.");
+            break;
+
+        case "incomplete":
+            logError("[TextAI] Run ended, incomplete.");
+            break;
     }
 
     threads.set(interaction.channelId, thread);

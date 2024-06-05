@@ -1,1 +1,1 @@
-npm run release
+npm run start
