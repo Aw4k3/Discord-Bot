@@ -28,8 +28,8 @@ const data = new SlashCommandBuilder()
 for (var i = 0; i < 10; i++) {
     data.addAttachmentOption(option =>
         option
-            .setName(`image-${i}`)
-            .setDescription("Add images for FakeAwake to stare at.")
+            .setName(`attachment-${i}`)
+            .setDescription("Add attachments for FakeAwake to stare at.")
             .setRequired(false)
     );
 }
@@ -67,7 +67,7 @@ async function execute(interaction: CommandInteraction) {
 
     let run: Run = await openAi.beta.threads.runs.createAndPoll(thread.id, {
         assistant_id: assistantId,
-        max_completion_tokens: 200
+        max_completion_tokens: 400
     });
 
     switch (run.status) {
@@ -78,14 +78,17 @@ async function execute(interaction: CommandInteraction) {
 
         case "cancelled":
             logError("[TextAI] Run was cancelled.");
+            interaction.editReply("Internal Error: Request was cancelled.");
             break;
 
         case "failed":
             logError("[TextAI] Run failed.");
+            interaction.editReply("Internal Error: Request resulted in a failure.");
             break;
 
         case "incomplete":
             logError("[TextAI] Run ended, incomplete.");
+            interaction.editReply("Internal Error: Failed to complete request.");
             break;
     }
 
