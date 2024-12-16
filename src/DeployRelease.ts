@@ -1,8 +1,8 @@
 import "dotenv/config";
 import { REST, RESTPostAPIChatInputApplicationCommandsJSONBody, Routes } from "discord.js";
-import { ICommand } from "./Interfaces";
 import { readdirSync } from "fs";
 import path from "path"
+import { ICommand } from "./api/Command";
 
 const commands: RESTPostAPIChatInputApplicationCommandsJSONBody[] = [];
 const rest = new REST().setToken(process.env.DISCORD_TOKEN as string);

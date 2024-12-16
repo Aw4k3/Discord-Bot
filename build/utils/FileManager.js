@@ -40,7 +40,7 @@ exports.downloadFile = downloadFile;
 exports.deleteFile = deleteFile;
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
-const Api_1 = require("../services/Api");
+const Log_1 = require("../api/Log");
 const Axios = __importStar(require("axios"));
 const promises_1 = require("stream/promises");
 async function downloadFile(url, filePath) {
@@ -48,14 +48,14 @@ async function downloadFile(url, filePath) {
     if (!fs_1.default.existsSync(path_1.default.dirname(filePath)))
         fs_1.default.mkdirSync(path_1.default.dirname(filePath), { recursive: true });
     let response = await Axios.default.get(url, { responseType: "stream" });
-    (0, Api_1.log)(`\x1b[36m[File Manager] Status Code: ${response.status}\x1b[0m`);
+    (0, Log_1.log)(`\x1b[36m[File Manager] Status Code: ${response.status}\x1b[0m`);
     // log(`\x1b[36m[Download] Headers: ${JSON.stringify(response.headers, null, 2)}\x1b[0m`);
-    (0, Api_1.log)(`\x1b[36m[File Manager] Downloading "${filePath}" from "${url}"\x1b[0m`);
+    (0, Log_1.log)(`\x1b[36m[File Manager] Downloading "${filePath}" from "${url}"\x1b[0m`);
     await (0, promises_1.pipeline)(response.data, wstream);
     wstream.close();
-    (0, Api_1.log)(`\x1b[36m[File Manager] Downloaded "${filePath}"\x1b[0m`);
+    (0, Log_1.log)(`\x1b[36m[File Manager] Downloaded "${filePath}"\x1b[0m`);
 }
 async function deleteFile(filePath) {
     await fs_1.default.unlinkSync(filePath);
-    (0, Api_1.log)(`\x1b[36m[File Manager] Deleted "${filePath}"\x1b[0m`);
+    (0, Log_1.log)(`\x1b[36m[File Manager] Deleted "${filePath}"\x1b[0m`);
 }

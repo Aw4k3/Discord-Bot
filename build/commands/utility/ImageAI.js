@@ -7,7 +7,7 @@ exports.data = void 0;
 exports.execute = execute;
 const discord_js_1 = require("discord.js");
 const openai_1 = __importDefault(require("openai"));
-const Api_1 = require("../../services/Api");
+const Log_1 = require("../../api/Log");
 const FileManager_1 = require("../../utils/FileManager");
 const imagePath = "./temp/generated.png";
 const openAi = new openai_1.default({
@@ -25,7 +25,7 @@ async function execute(interaction) {
     await interaction.deferReply();
     const message = interaction.options.get("prompt");
     if (!message) {
-        (0, Api_1.logError)("[ImageAI] Failed to obtain \"message\" parameter.");
+        (0, Log_1.logError)("[ImageAI] Failed to obtain \"message\" parameter.");
         await interaction.editReply("Internal Error");
         return;
     }

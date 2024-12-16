@@ -1,6 +1,6 @@
 ﻿import { SlashCommandBuilder, CommandInteraction } from "discord.js";
 import OpenAI from "openai";
-import { logError } from "../../services/Api";
+import { logError } from "../../api/Log";
 import { ChatCompletionCreateParamsBase, ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import { Thread } from "openai/resources/beta/threads/threads";
 import { Message, MessageContentPartParam } from "openai/resources/beta/threads/messages";

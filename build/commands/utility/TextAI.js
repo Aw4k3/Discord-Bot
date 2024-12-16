@@ -7,7 +7,7 @@ exports.data = void 0;
 exports.execute = execute;
 const discord_js_1 = require("discord.js");
 const openai_1 = __importDefault(require("openai"));
-const Api_1 = require("../../services/Api");
+const Log_1 = require("../../api/Log");
 // Key will be the channel ID
 const threads = new Map();
 const messageLimit = 10;
@@ -35,7 +35,7 @@ async function execute(interaction) {
     const message = interaction.options.get("message");
     const images = [];
     if (!message) {
-        (0, Api_1.logError)("[TextAI] Failed to obtain \"message\" parameter.");
+        (0, Log_1.logError)("[TextAI] Failed to obtain \"message\" parameter.");
         await interaction.editReply("Internal Error");
         return;
     }
@@ -68,15 +68,15 @@ async function execute(interaction) {
             interaction.editReply(messages.data[0].content[0].text.value);
             break;
         case "cancelled":
-            (0, Api_1.logError)("[TextAI] Run was cancelled.");
+            (0, Log_1.logError)("[TextAI] Run was cancelled.");
             interaction.editReply("Internal Error: Request was cancelled.");
             break;
         case "failed":
-            (0, Api_1.logError)("[TextAI] Run failed.");
+            (0, Log_1.logError)("[TextAI] Run failed.");
             interaction.editReply("Internal Error: Request resulted in a failure.");
             break;
         case "incomplete":
-            (0, Api_1.logError)("[TextAI] Run ended, incomplete.");
+            (0, Log_1.logError)("[TextAI] Run ended, incomplete.");
             interaction.editReply("Internal Error: Failed to complete request.");
             break;
     }
