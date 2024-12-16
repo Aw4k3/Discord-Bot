@@ -8,7 +8,7 @@ import path from "path"
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 const commands: Collection<string, ICommand> = new Collection();
 
-const commandFiles = readdirSync("./release/commands", { recursive: true }).filter(file => file.toString().endsWith(".js"));
+const commandFiles = readdirSync("./commands", { recursive: true }).filter(file => file.toString().endsWith(".js"));
 let successfulLoads: number = 0, failedLoads: number = 0;
 commandFiles.forEach(commandFile => {
     const command: ICommand = require(path.join(__dirname, "./commands", commandFile.toString()));

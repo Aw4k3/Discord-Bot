@@ -7,7 +7,7 @@ import path from "path"
 const commands: RESTPostAPIChatInputApplicationCommandsJSONBody[] = [];
 const rest = new REST().setToken(process.env.DISCORD_TOKEN as string);
 
-const commandFiles = readdirSync("./release/commands", { recursive: true }).filter(file => file.toString().endsWith(".js"));
+const commandFiles = readdirSync("./commands", { recursive: true }).filter(file => file.toString().endsWith(".js"));
 commandFiles.forEach(commandFile => {
 	const command: ICommand = require(path.join(__dirname, "commands", commandFile.toString()));
 
