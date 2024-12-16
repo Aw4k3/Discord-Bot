@@ -3,7 +3,7 @@ import { log } from "console";
 
 const name: string = "list-servers";
 
-function execute(client: Client) {
+function execute(client: Client, args: string[]) {
   let list: string[] = client.guilds.cache.map((guild) => guild.name);
   list = list.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 

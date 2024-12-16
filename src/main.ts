@@ -8,7 +8,7 @@ import {
   ActivityType,
 } from "discord.js";
 import { readdirSync } from "fs";
-import { log, logError } from "./api/Log";
+import { log, logError, logWarning } from "./api/Log";
 import path from "path";
 import { ICommand } from "./api/Command";
 import { ICliCommand } from "./api/CliCommand";
@@ -32,8 +32,8 @@ commandFiles.forEach((commandFile) => {
   ));
 
   if ("data" in command && "execute" in command) {
-    commands.set(command.data.name, command);
     successfulLoads++;
+    commands.set(command.data.name, command);
     log(
       `Successfully loaded the command "${command.data.name}" from "${commandFile}"`
     );
@@ -46,39 +46,60 @@ commandFiles.forEach((commandFile) => {
 });
 
 log(
-  `Found ${commandFiles.length} commands with ${successfulLoads} successfully loaded and ${failedLoads} failures`
+  `Found ${commandFiles.length} bot commands with ${successfulLoads} successfully loaded and ${failedLoads} failures`
 );
 
 /* Load CLI Commands */
+successfulLoads = 0;
+failedLoads = 0;
+
 const cliCommandFiles = readdirSync("./cli", { recursive: true }).filter(
   (file) => file.toString().endsWith(".js")
 );
 
-cliCommandFiles.forEach(commandFile => {
-    const command: ICliCommand = require(path.join(__dirname, "./cli", commandFile.toString()));
+cliCommandFiles.forEach((commandFile) => {
+  const command: ICliCommand = require(path.join(
+    __dirname,
+    "./cli",
+    commandFile.toString()
+  ));
+  if ("name" in command && "execute" in command) {
+    successfulLoads++;
     cliCommands.set(command.name, command);
+    log(
+      `Successfully loaded the command "${command.name}" from "${commandFile}"`
+    );
+  } else {
+    failedLoads++;
+    logError(
+      `Failed to load the command at "${commandFile}. It might be missing it's "data" or "execute" property.`
+    );
+  }
 });
-console.log(commands);
+
+log(
+  `Found ${commandFiles.length} CLI commands with ${successfulLoads} successfully loaded and ${failedLoads} failures`
+);
 
 /* Initialise CLI */
 const stdin = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
+  input: process.stdin,
+  output: process.stdout,
+});
 
-  stdin.on("line", onInput);
+stdin.on("line", onInput);
 
-  function onInput(input: string): void {
-    if (input.toLowerCase() === "help") {
-        cliCommands.forEach(command => log(command.name));
-        return;
-    }
-
-    const command = cliCommands.get(input.toLowerCase());
-
-    if (command) command.execute(client);
-    else log(`"${input}" is not a command`);
+function onInput(input: string): void {
+  if (input.toLowerCase() === "help") {
+    cliCommands.forEach((command) => log(command.name));
+    return;
   }
+  const args: string[] = input.toLowerCase().split(" ");
+  const command = cliCommands.get(args.shift() as string);
+
+  if (command) command.execute(client, args);
+  else log(`"${input}" is not a command`);
+}
 
 /* Bot Ready */
 function onReady(): void {

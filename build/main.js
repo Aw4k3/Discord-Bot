@@ -18,8 +18,8 @@ let successfulLoads = 0, failedLoads = 0;
 commandFiles.forEach((commandFile) => {
     const command = require(path_1.default.join(__dirname, "./commands", commandFile.toString()));
     if ("data" in command && "execute" in command) {
-        commands.set(command.data.name, command);
         successfulLoads++;
+        commands.set(command.data.name, command);
         (0, Log_1.log)(`Successfully loaded the command "${command.data.name}" from "${commandFile}"`);
     }
     else {
@@ -27,14 +27,24 @@ commandFiles.forEach((commandFile) => {
         (0, Log_1.logError)(`Failed to load the command at "${commandFile}. It might be missing it's "data" or "execute" property.`);
     }
 });
-(0, Log_1.log)(`Found ${commandFiles.length} commands with ${successfulLoads} successfully loaded and ${failedLoads} failures`);
+(0, Log_1.log)(`Found ${commandFiles.length} bot commands with ${successfulLoads} successfully loaded and ${failedLoads} failures`);
 /* Load CLI Commands */
+successfulLoads = 0;
+failedLoads = 0;
 const cliCommandFiles = (0, fs_1.readdirSync)("./cli", { recursive: true }).filter((file) => file.toString().endsWith(".js"));
-cliCommandFiles.forEach(commandFile => {
+cliCommandFiles.forEach((commandFile) => {
     const command = require(path_1.default.join(__dirname, "./cli", commandFile.toString()));
-    cliCommands.set(command.name, command);
+    if ("name" in command && "execute" in command) {
+        successfulLoads++;
+        cliCommands.set(command.name, command);
+        (0, Log_1.log)(`Successfully loaded the command "${command.name}" from "${commandFile}"`);
+    }
+    else {
+        failedLoads++;
+        (0, Log_1.logError)(`Failed to load the command at "${commandFile}. It might be missing it's "data" or "execute" property.`);
+    }
 });
-console.log(commands);
+(0, Log_1.log)(`Found ${commandFiles.length} CLI commands with ${successfulLoads} successfully loaded and ${failedLoads} failures`);
 /* Initialise CLI */
 const stdin = node_readline_1.default.createInterface({
     input: process.stdin,
@@ -43,12 +53,13 @@ const stdin = node_readline_1.default.createInterface({
 stdin.on("line", onInput);
 function onInput(input) {
     if (input.toLowerCase() === "help") {
-        cliCommands.forEach(command => (0, Log_1.log)(command.name));
+        cliCommands.forEach((command) => (0, Log_1.log)(command.name));
         return;
     }
-    const command = cliCommands.get(input.toLowerCase());
+    const args = input.toLowerCase().split(" ");
+    const command = cliCommands.get(args.shift());
     if (command)
-        command.execute(client);
+        command.execute(client, args);
     else
         (0, Log_1.log)(`"${input}" is not a command`);
 }
