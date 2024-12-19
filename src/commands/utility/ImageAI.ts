@@ -1,6 +1,6 @@
 ﻿import { SlashCommandBuilder, CommandInteraction } from "discord.js";
 import OpenAI from "openai";
-import { logError } from "../../api/Log";
+import { logError } from "../../utils/Log";
 import { deleteFile, downloadFile } from "../../utils/FileManager";
 
 const imagePath: string = "./temp/generated.png";

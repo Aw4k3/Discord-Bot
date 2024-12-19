@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { log } from "../api/Log";
+import { log } from "./Log";
 import { AxiosResponse } from "axios";
 import * as Axios from "axios";
 import { pipeline } from "stream/promises";

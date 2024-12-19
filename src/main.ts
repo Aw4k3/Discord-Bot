@@ -8,34 +8,34 @@ import {
   ActivityType,
 } from "discord.js";
 import { readdirSync } from "fs";
-import { log, logError, logWarning } from "./api/Log";
+import { log, logError } from "./utils/Log";
 import path from "path";
 import { ICommand } from "./api/Command";
 import { ICliCommand } from "./api/CliCommand";
 import readline from "node:readline";
 import https from "https";
 import { IncomingMessage, ServerResponse } from "http";
+import { IEndpoint } from "./api/Endpoint";
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
-const commands: Collection<string, ICommand> = new Collection();
-const cliCommands: Collection<string, ICliCommand> = new Collection();
 
 /* Load Bot Commands */
+const botCommands: Collection<string, ICommand> = new Collection();
 const commandFiles = readdirSync("./commands", { recursive: true }).filter(
   (file) => file.toString().endsWith(".js")
 );
 let successfulLoads: number = 0,
-  failedLoads: number = 0;
+failedLoads: number = 0;
 commandFiles.forEach((commandFile) => {
   const command: ICommand = require(path.join(
     __dirname,
     "./commands",
     commandFile.toString()
   ));
-
+  
   if ("data" in command && "execute" in command) {
     successfulLoads++;
-    commands.set(command.data.name, command);
+    botCommands.set(command.data.name, command);
     log(
       `Successfully loaded the command "${command.data.name}" from "${commandFile}"`
     );
@@ -52,6 +52,7 @@ log(
 );
 
 /* Load CLI Commands */
+const cliCommands: Collection<string, ICliCommand> = new Collection();
 successfulLoads = 0;
 failedLoads = 0;
 
@@ -105,13 +106,44 @@ function onInput(input: string): void {
 
 
 /* Initialise Web Server */
+const endpoints: Collection<string, object> = new Collection();
 const host = "localhost";
 const port = 8000;
+successfulLoads = 0;
+failedLoads = 0;
+
+const endpointFiles = readdirSync("./api/endpoints/", { recursive: true }).filter(
+  (file) => file.toString().endsWith(".js")
+);
+
+endpointFiles.forEach((endpointFile) => {
+  const endpoint: IEndpoint = require(path.join(
+    __dirname,
+    "./api/endpoints/",
+    endpointFile.toString()
+  ));
+  if ("name" in endpoint && "execute" in endpoint) {
+    successfulLoads++;
+    endpoints.set(endpoint.path, endpoint);
+    log(
+      `Successfully loaded the endpoint "${endpoint.name}" from "${endpointFile}"`
+    );
+  } else {
+    failedLoads++;
+    logError(
+      `Failed to load the endpoint at "${endpointFile}. It might be missing it's "data" or "execute" property.`
+    );
+  }
+});
+
+log(
+  `Found ${endpoints.length} endpoints with ${successfulLoads} successfully loaded and ${failedLoads} failures`
+);
 
 const webServer = https.createServer(requestListener);
 
 function requestListener(req: IncomingMessage, res: ServerResponse) {
-  
+  res.writeHead(200, { "content-type": "application/json" });
 }
 
 /* Bot Ready */
@@ -126,7 +158,7 @@ function onReady(): void {
 async function onInteraction(interaction: Interaction): Promise<void> {
   if (!interaction.isChatInputCommand()) return;
 
-  const command = commands.get(interaction.commandName);
+  const command = botCommands.get(interaction.commandName);
 
   if (!command) {
     logError(

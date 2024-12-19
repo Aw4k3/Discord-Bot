@@ -1,5 +1,5 @@
 import { Channel, Client, GuildTextBasedChannel } from "discord.js";
-import { logError, logWarning } from "../api/Log";
+import { logError, logWarning } from "../utils/Log";
 
 const name: string = "send-message";
 
