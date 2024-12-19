@@ -13,6 +13,8 @@ import path from "path";
 import { ICommand } from "./api/Command";
 import { ICliCommand } from "./api/CliCommand";
 import readline from "node:readline";
+import https from "https";
+import { IncomingMessage, ServerResponse } from "http";
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 const commands: Collection<string, ICommand> = new Collection();
@@ -99,6 +101,17 @@ function onInput(input: string): void {
 
   if (command) command.execute(client, args);
   else log(`"${input}" is not a command`);
+}
+
+
+/* Initialise Web Server */
+const host = "localhost";
+const port = 8000;
+
+const webServer = https.createServer(requestListener);
+
+function requestListener(req: IncomingMessage, res: ServerResponse) {
+  
 }
 
 /* Bot Ready */
