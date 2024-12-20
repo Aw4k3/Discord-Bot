@@ -7,7 +7,7 @@ exports.data = void 0;
 exports.execute = execute;
 const discord_js_1 = require("discord.js");
 const openai_1 = __importDefault(require("openai"));
-const Log_1 = require("../../api/Log");
+const Log_1 = require("../../utils/Log");
 // Key will be the channel ID
 const threads = new Map();
 const messageLimit = 10;

@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.name = void 0;
 exports.execute = execute;
-const Log_1 = require("../api/Log");
+const Log_1 = require("../utils/Log");
 const name = "send-message";
 exports.name = name;
 function execute(client, args) {

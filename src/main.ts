@@ -13,7 +13,7 @@ import path from "path";
 import { ICommand } from "./api/Command";
 import { ICliCommand } from "./api/CliCommand";
 import readline from "node:readline";
-import https from "https";
+import http from "http";
 import { IncomingMessage, ServerResponse } from "http";
 import { IEndpoint } from "./api/Endpoint";
 
@@ -106,27 +106,27 @@ function onInput(input: string): void {
 
 
 /* Initialise Web Server */
-const endpoints: Collection<string, object> = new Collection();
+const endpoints: Collection<string, {}> = new Collection();
 const host = "localhost";
 const port = 8000;
 successfulLoads = 0;
 failedLoads = 0;
 
-const endpointFiles = readdirSync("./api/endpoints/", { recursive: true }).filter(
+const endpointFiles = readdirSync("./api/endpoints", { recursive: true }).filter(
   (file) => file.toString().endsWith(".js")
 );
 
 endpointFiles.forEach((endpointFile) => {
   const endpoint: IEndpoint = require(path.join(
     __dirname,
-    "./api/endpoints/",
+    "./api/endpoints",
     endpointFile.toString()
   ));
-  if ("name" in endpoint && "execute" in endpoint) {
+  if (endpoint satisfies IEndpoint) {
     successfulLoads++;
     endpoints.set(endpoint.path, endpoint);
     log(
-      `Successfully loaded the endpoint "${endpoint.name}" from "${endpointFile}"`
+      `Successfully loaded the endpoint "${endpoint.path}" from "${endpointFile}"`
     );
   } else {
     failedLoads++;
@@ -137,14 +137,16 @@ endpointFiles.forEach((endpointFile) => {
 });
 
 log(
-  `Found ${endpoints.length} endpoints with ${successfulLoads} successfully loaded and ${failedLoads} failures`
+  `Found ${endpointFiles.length} endpoints with ${successfulLoads} successfully loaded and ${failedLoads} failures`
 );
 
-const webServer = https.createServer(requestListener);
+// const webServer = http.createServer(requestListener);
 
 function requestListener(req: IncomingMessage, res: ServerResponse) {
   res.writeHead(200, { "content-type": "application/json" });
 }
+
+// webServer.listen(8080);
 
 /* Bot Ready */
 function onReady(): void {

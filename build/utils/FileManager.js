@@ -40,7 +40,7 @@ exports.downloadFile = downloadFile;
 exports.deleteFile = deleteFile;
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
-const Log_1 = require("../api/Log");
+const Log_1 = require("./Log");
 const Axios = __importStar(require("axios"));
 const promises_1 = require("stream/promises");
 async function downloadFile(url, filePath) {
