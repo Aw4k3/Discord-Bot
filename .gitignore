@@ -130,7 +130,7 @@ dist
 .pnp.*
 
 # Other
-# build/
+build/
 .vs
 obj/
 /nuget.config
