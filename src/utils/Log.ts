@@ -15,3 +15,9 @@ export function logError(message: string) {
 
     // Implement API related functionality here.
 }
+
+export function logDebug(message: string) {
+    console.log(`\x1b[36m[${new Date().toLocaleString().replace(",", "")}] ${message}\x1b[0m`);
+
+    // Implement API related functionality here.
+}

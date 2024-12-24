@@ -2,14 +2,14 @@ import "dotenv/config";
 import { REST, RESTPostAPIChatInputApplicationCommandsJSONBody, Routes } from "discord.js";
 import { readdirSync } from "fs";
 import path from "path"
-import { ICommand } from "./api/Command";
+import { BotCommand } from "./types/Command";
 
 const commands: RESTPostAPIChatInputApplicationCommandsJSONBody[] = [];
 const rest = new REST().setToken(process.env.DISCORD_TOKEN as string);
 
 const commandFiles = readdirSync("./commands", { recursive: true }).filter(file => file.toString().endsWith(".js"));
 commandFiles.forEach(commandFile => {
-	const command: ICommand = require(path.join(__dirname, "./commands", commandFile.toString()));
+	const command: BotCommand = require(path.join(__dirname, "./commands", commandFile.toString()));
 
 	if ("data" in command && "execute" in command) {
 		commands.push(command.data.toJSON());

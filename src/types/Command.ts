@@ -1,6 +1,6 @@
 import { Interaction, SlashCommandBuilder } from "discord.js";
 
-export interface ICommand {
+export type BotCommand = {
     data: SlashCommandBuilder,
     execute: (interaction: Interaction) => void;
 }

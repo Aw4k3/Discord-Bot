@@ -1,49 +1,32 @@
 import "dotenv/config";
-import {
-  Client,
-  Events,
-  GatewayIntentBits,
-  Collection,
-  Interaction,
-  ActivityType,
-} from "discord.js";
+import { Client, Events, GatewayIntentBits, Collection, Interaction, ActivityType } from "discord.js";
 import { readdirSync } from "fs";
-import { log, logError } from "./utils/Log";
+import { log, logDebug, logError } from "./utils/Log";
 import path from "path";
-import { ICommand } from "./api/Command";
-import { ICliCommand } from "./api/CliCommand";
+import { BotCommand } from "./types/Command";
+import { CliCommand } from "./types/CliCommand";
 import readline from "node:readline";
 import http from "http";
 import { IncomingMessage, ServerResponse } from "http";
-import { IEndpoint } from "./api/Endpoint";
+import { Endpoint } from "./types/Endpoint";
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
 /* Load Bot Commands */
-const botCommands: Collection<string, ICommand> = new Collection();
-const commandFiles = readdirSync("./commands", { recursive: true }).filter(
-  (file) => file.toString().endsWith(".js")
-);
+const botCommands: Collection<string, BotCommand> = new Collection();
+const commandFiles = readdirSync("./commands", { recursive: true }).filter((file) => file.toString().endsWith(".js"));
 let successfulLoads: number = 0,
-failedLoads: number = 0;
+  failedLoads: number = 0;
 commandFiles.forEach((commandFile) => {
-  const command: ICommand = require(path.join(
-    __dirname,
-    "./commands",
-    commandFile.toString()
-  ));
-  
+  const command: BotCommand = require(path.join(__dirname, "./commands", commandFile.toString()));
+
   if ("data" in command && "execute" in command) {
     successfulLoads++;
     botCommands.set(command.data.name, command);
-    log(
-      `Successfully loaded the command "${command.data.name}" from "${commandFile}"`
-    );
+    log(`Successfully loaded the command "${command.data.name}" from "${commandFile}"`);
   } else {
     failedLoads++;
-    logError(
-      `Failed to load the command at "${commandFile}. It might be missing it's "data" or "execute" property.`
-    );
+    logError(`Failed to load the command at "${commandFile}. It might be missing it's "data" or "execute" property.`);
   }
 });
 
@@ -52,31 +35,21 @@ log(
 );
 
 /* Load CLI Commands */
-const cliCommands: Collection<string, ICliCommand> = new Collection();
+const cliCommands: Collection<string, CliCommand> = new Collection();
 successfulLoads = 0;
 failedLoads = 0;
 
-const cliCommandFiles = readdirSync("./cli", { recursive: true }).filter(
-  (file) => file.toString().endsWith(".js")
-);
+const cliCommandFiles = readdirSync("./cli", { recursive: true }).filter((file) => file.toString().endsWith(".js"));
 
 cliCommandFiles.forEach((commandFile) => {
-  const command: ICliCommand = require(path.join(
-    __dirname,
-    "./cli",
-    commandFile.toString()
-  ));
+  const command: CliCommand = require(path.join(__dirname, "./cli", commandFile.toString()));
   if ("name" in command && "execute" in command) {
     successfulLoads++;
     cliCommands.set(command.name, command);
-    log(
-      `Successfully loaded the command "${command.name}" from "${commandFile}"`
-    );
+    log(`Successfully loaded the command "${command.name}" from "${commandFile}"`);
   } else {
     failedLoads++;
-    logError(
-      `Failed to load the command at "${commandFile}. It might be missing it's "data" or "execute" property.`
-    );
+    logError(`Failed to load the command at "${commandFile}. It might be missing it's "data" or "execute" property.`);
   }
 });
 
@@ -104,49 +77,62 @@ function onInput(input: string): void {
   else log(`"${input}" is not a command`);
 }
 
-
 /* Initialise Web Server */
-const endpoints: Collection<string, {}> = new Collection();
+const endpoints: Collection<string, Endpoint> = new Collection();
 const host = "localhost";
-const port = 8000;
+const port = 8080;
 successfulLoads = 0;
 failedLoads = 0;
 
-const endpointFiles = readdirSync("./api/endpoints", { recursive: true }).filter(
-  (file) => file.toString().endsWith(".js")
-);
+const endpointFiles = readdirSync("./api", {
+  recursive: true,
+}).filter((file) => file.toString().endsWith(".js"));
 
 endpointFiles.forEach((endpointFile) => {
-  const endpoint: IEndpoint = require(path.join(
-    __dirname,
-    "./api/endpoints",
-    endpointFile.toString()
-  ));
-  if (endpoint satisfies IEndpoint) {
+  const endpoint: Endpoint = require(path.join(__dirname, "./api", endpointFile.toString()));
+  if (endpoint satisfies Endpoint) {
     successfulLoads++;
     endpoints.set(endpoint.path, endpoint);
-    log(
-      `Successfully loaded the endpoint "${endpoint.path}" from "${endpointFile}"`
-    );
+    log(`Successfully loaded the endpoint "${endpoint.path}" from "${endpointFile}"`);
   } else {
     failedLoads++;
-    logError(
-      `Failed to load the endpoint at "${endpointFile}. It might be missing it's "data" or "execute" property.`
-    );
+    logError(`Failed to load the endpoint at "${endpointFile}. It might be missing it's "data" or "execute" property.`);
   }
 });
 
-log(
-  `Found ${endpointFiles.length} endpoints with ${successfulLoads} successfully loaded and ${failedLoads} failures`
-);
+log(`Found ${endpointFiles.length} endpoints with ${successfulLoads} successfully loaded and ${failedLoads} failures`);
 
-// const webServer = http.createServer(requestListener);
+const webServer = http.createServer(requestListener);
 
 function requestListener(req: IncomingMessage, res: ServerResponse) {
   res.writeHead(200, { "content-type": "application/json" });
+  const endpoint = endpoints.get(req.url as string);
+
+  if (!endpoint) {
+    res.write(JSON.stringify({ message: "Endpoint not found" }));
+    res.end();
+    return;
+  }
+
+  if (req.method === "POST") {
+    let data: string = "";
+
+    req.on("data", (chunk: string) => {
+      data += chunk;
+    });
+
+    req.on("end", () => {
+      const json = JSON.parse(data);
+      res.write(JSON.stringify(endpoint.execute(client, json)));
+    });
+  } else {
+    res.write(JSON.stringify(endpoint.execute(client)));
+  }
+
+  res.end();
 }
 
-// webServer.listen(8080);
+webServer.listen(port, host);
 
 /* Bot Ready */
 function onReady(): void {
@@ -163,9 +149,7 @@ async function onInteraction(interaction: Interaction): Promise<void> {
   const command = botCommands.get(interaction.commandName);
 
   if (!command) {
-    logError(
-      `No commands matching the name "${interaction.commandName}" was found`
-    );
+    logError(`No commands matching the name "${interaction.commandName}" was found`);
     return;
   }
 

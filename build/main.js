@@ -67,12 +67,14 @@ function onInput(input) {
 /* Initialise Web Server */
 const endpoints = new discord_js_1.Collection();
 const host = "localhost";
-const port = 8000;
+const port = 8080;
 successfulLoads = 0;
 failedLoads = 0;
-const endpointFiles = (0, fs_1.readdirSync)("./api/endpoints", { recursive: true }).filter((file) => file.toString().endsWith(".js"));
+const endpointFiles = (0, fs_1.readdirSync)("./api", {
+    recursive: true,
+}).filter((file) => file.toString().endsWith(".js"));
 endpointFiles.forEach((endpointFile) => {
-    const endpoint = require(path_1.default.join(__dirname, "./api/endpoints", endpointFile.toString()));
+    const endpoint = require(path_1.default.join(__dirname, "./api", endpointFile.toString()));
     if (endpoint) {
         successfulLoads++;
         endpoints.set(endpoint.path, endpoint);
@@ -86,9 +88,29 @@ endpointFiles.forEach((endpointFile) => {
 (0, Log_1.log)(`Found ${endpointFiles.length} endpoints with ${successfulLoads} successfully loaded and ${failedLoads} failures`);
 const webServer = http_1.default.createServer(requestListener);
 function requestListener(req, res) {
-    // res.writeHead(200, { "content-type": "application/json" });
+    res.writeHead(200, { "content-type": "application/json" });
+    const endpoint = endpoints.get(req.url);
+    if (!endpoint) {
+        res.write(JSON.stringify({ message: "Endpoint not found" }));
+        res.end();
+        return;
+    }
+    if (req.method === "POST") {
+        let data = "";
+        req.on("data", (chunk) => {
+            data += chunk;
+        });
+        req.on("end", () => {
+            const json = JSON.parse(data);
+            res.write(JSON.stringify(endpoint.execute(client, json)));
+        });
+    }
+    else {
+        res.write(JSON.stringify(endpoint.execute(client)));
+    }
+    res.end();
 }
-webServer.listen(8080);
+webServer.listen(port, host);
 /* Bot Ready */
 function onReady() {
     (0, Log_1.log)(`Logged in as ${client.user?.tag}`);
