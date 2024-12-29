@@ -10,7 +10,9 @@
     "createImage": "powershell.exe scripts/CreateImage.ps1"
   },
   "dependencies": {
+    "@discordjs/voice": "^0.18.0",
     "@types/node": "^20.12.3",
+    "@types/pg": "^8.11.10",
     "@typescript-eslint/eslint-plugin": "^7.5.0",
     "@typescript-eslint/parser": "^7.5.0",
     "axios": "^1.6.8",
@@ -18,6 +20,7 @@
     "dotenv": "^16.4.5",
     "eslint": "^8.57.0",
     "openai": "^4.48.2",
+    "pg": "^8.13.1",
     "typescript": "^5.7.2"
   }
 }

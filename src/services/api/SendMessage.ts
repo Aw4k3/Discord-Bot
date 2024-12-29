@@ -13,9 +13,7 @@ function execute(client: Client, data: Data): {} {
 
   const textChannel = client.channels.cache.get(data.textChannelId);
 
-  if (!textChannel) {
-    return { error: `Server with id "${data.textChannelId}" not found` };
-  }
+  if (!textChannel) return { error: `Text channel with id "${data.textChannelId}" not found` };
 
   try {
     (textChannel as GuildTextBasedChannel).send(data.message);

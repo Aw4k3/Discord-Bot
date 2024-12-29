@@ -9,6 +9,7 @@ import readline from "node:readline";
 import http from "http";
 import { IncomingMessage, ServerResponse } from "http";
 import { Endpoint } from "./types/Endpoint";
+import { connectToDatabase } from "./services/DatabaseAccess";
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
@@ -84,12 +85,12 @@ const port = 8080;
 successfulLoads = 0;
 failedLoads = 0;
 
-const endpointFiles = readdirSync("./api", {
+const endpointFiles = readdirSync("./services/api", {
   recursive: true,
 }).filter((file) => file.toString().endsWith(".js"));
 
 endpointFiles.forEach((endpointFile) => {
-  const endpoint: Endpoint = require(path.join(__dirname, "./api", endpointFile.toString()));
+  const endpoint: Endpoint = require(path.join(__dirname, "./services/api", endpointFile.toString()));
   if (endpoint satisfies Endpoint) {
     successfulLoads++;
     endpoints.set(endpoint.path, endpoint);
@@ -105,7 +106,21 @@ log(`Found ${endpointFiles.length} endpoints with ${successfulLoads} successfull
 const webServer = http.createServer(requestListener);
 
 function requestListener(req: IncomingMessage, res: ServerResponse) {
-  res.writeHead(200, { "content-type": "application/json" });
+  if (req.method === "OPTIONS") {
+    res.writeHead(204, {
+      "access-control-allow-origin": "*",
+      "access-control-allow-methods": "GET, POST, OPTIONS",
+      "access-control-allow-headers": "Content-Type",
+    });
+    res.end();
+    return;
+  }
+
+  res.writeHead(200, {
+    "content-type": "application/json",
+    "access-control-allow-origin": "*",
+  });
+
   const endpoint = endpoints.get(req.url as string);
 
   if (!endpoint) {
@@ -114,6 +129,8 @@ function requestListener(req: IncomingMessage, res: ServerResponse) {
     return;
   }
 
+  log(`Received request for ${req.url}`);
+
   if (req.method === "POST") {
     let data: string = "";
 
@@ -121,18 +138,25 @@ function requestListener(req: IncomingMessage, res: ServerResponse) {
       data += chunk;
     });
 
-    req.on("end", () => {
+    req.on("end", async () => {
       const json = JSON.parse(data);
-      res.write(JSON.stringify(endpoint.execute(client, json)));
+      logDebug(data);
+      const result = await endpoint.execute(client, json);
+      res.write(JSON.stringify(result));
+      res.end();
     });
   } else {
     res.write(JSON.stringify(endpoint.execute(client)));
+    res.end();
   }
-
-  res.end();
 }
 
 webServer.listen(port, host);
+
+/* Initialise Database */
+(async () => {
+  await connectToDatabase();
+})();
 
 /* Bot Ready */
 function onReady(): void {

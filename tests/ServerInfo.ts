@@ -1,12 +1,11 @@
 (async () => {
-  const response = await fetch("http://localhost:8080/sendmessage", {
+  const response = await fetch("http://localhost:8080/serverinfo", {
     method: "POST",
-    headers: { 
+    headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      textChannelId: "706098244081680385",
-      message: "API Test",
+      serverId: "436914784676610078",
     }),
   });
   const data = await response.json();
