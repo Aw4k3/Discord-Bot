@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { Client, Events, GatewayIntentBits, Collection, Interaction, ActivityType } from "discord.js";
+import { Client, Events, GatewayIntentBits, Collection, Interaction, ActivityType, GuildTextBasedChannel, Guild } from "discord.js";
 import { readdirSync } from "fs";
 import { log, logDebug, logError } from "./utils/Log";
 import path from "path";
@@ -9,11 +9,11 @@ import readline from "node:readline";
 import http from "http";
 import { IncomingMessage, ServerResponse } from "http";
 import { Endpoint } from "./types/Endpoint";
-import { connectToDatabase } from "./services/DatabaseAccess";
+import { connectToDatabase, insertCommandHistory } from "./services/DatabaseAccess";
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
-/* Load Bot Commands */
+// #region Load Bot Commands
 const botCommands: Collection<string, BotCommand> = new Collection();
 const commandFiles = readdirSync("./commands", { recursive: true }).filter((file) => file.toString().endsWith(".js"));
 let successfulLoads: number = 0,
@@ -35,7 +35,9 @@ log(
   `Found ${commandFiles.length} bot commands with ${successfulLoads} successfully loaded and ${failedLoads} failures`
 );
 
-/* Load CLI Commands */
+// #endregion
+
+// #region Load CLI Commands
 const cliCommands: Collection<string, CliCommand> = new Collection();
 successfulLoads = 0;
 failedLoads = 0;
@@ -58,7 +60,6 @@ log(
   `Found ${commandFiles.length} CLI commands with ${successfulLoads} successfully loaded and ${failedLoads} failures`
 );
 
-/* Initialise CLI */
 const stdin = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
@@ -78,10 +79,10 @@ function onInput(input: string): void {
   else log(`"${input}" is not a command`);
 }
 
-/* Initialise Web Server */
+// #endregion
+
+// #region Load API Endpoints
 const endpoints: Collection<string, Endpoint> = new Collection();
-const host = "localhost";
-const port = 8080;
 successfulLoads = 0;
 failedLoads = 0;
 
@@ -105,7 +106,7 @@ log(`Found ${endpointFiles.length} endpoints with ${successfulLoads} successfull
 
 const webServer = http.createServer(requestListener);
 
-function requestListener(req: IncomingMessage, res: ServerResponse) {
+async function requestListener(req: IncomingMessage, res: ServerResponse) {
   if (req.method === "OPTIONS") {
     res.writeHead(204, {
       "access-control-allow-origin": "*",
@@ -146,19 +147,23 @@ function requestListener(req: IncomingMessage, res: ServerResponse) {
       res.end();
     });
   } else {
-    res.write(JSON.stringify(endpoint.execute(client)));
+    res.write(JSON.stringify(await endpoint.execute(client)));
     res.end();
   }
 }
 
-webServer.listen(port, host);
+webServer.listen(process.env.API_PORT);
 
-/* Initialise Database */
+// #endregion
+
+// #region Database Connection
 (async () => {
   await connectToDatabase();
 })();
 
-/* Bot Ready */
+// #endregion
+
+// #region Bot Events
 function onReady(): void {
   log(`Logged in as ${client.user?.tag}`);
   client.user?.setActivity({
@@ -180,6 +185,20 @@ async function onInteraction(interaction: Interaction): Promise<void> {
   try {
     await command.execute(interaction);
     log(`${interaction.user.displayName} executed ${interaction.commandName}`);
+    
+    insertCommandHistory(
+      interaction.commandName,
+      JSON.stringify(interaction.options.data),
+      interaction.user.id,
+      interaction.user.displayName,
+      interaction.user.avatarURL() as string,
+      (interaction.channel as GuildTextBasedChannel).id,
+      (interaction.channel as GuildTextBasedChannel).name,
+      (interaction.guild as Guild).id,
+      (interaction.guild as Guild).name,
+      (interaction.guild as Guild).iconURL() as string,
+      Date.now().toString(),
+    );
   } catch (e: any) {
     logError(e);
     if (interaction.replied || interaction.deferred) {
@@ -200,3 +219,5 @@ client.once(Events.ClientReady, onReady);
 client.on(Events.InteractionCreate, onInteraction);
 
 client.login(process.env.DISCORD_TOKEN);
+
+// #endregion

@@ -19,7 +19,7 @@ function execute(client: Client, data: Data): {} {
   try {
     joinVc(voiceChannel as VoiceBasedChannel);
     return {
-      message: `Successfully sent message to channel "${(voiceChannel as VoiceBasedChannel).guild.name} > ${
+      message: `Successfully connected to channel "${(voiceChannel as VoiceBasedChannel).guild.name} > ${
         (voiceChannel as VoiceBasedChannel).name
       }"`,
     };

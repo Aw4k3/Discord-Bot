@@ -17,7 +17,7 @@ async function execute(client: Client, data: Data): Promise<Server | { error: st
   if (!server) return { error: `Server with id "${data.serverId}" not found` };
 
   const { id, name, memberCount, createdTimestamp, joinedTimestamp } = server;
-  const iconUrl = server.iconURL() as string;
+  const iconUrl = server.iconURL({ extension: "png" }) as string;
   const channels = server.channels.cache.map((channel) => ({
     id: channel.id,
     name: channel.name,
