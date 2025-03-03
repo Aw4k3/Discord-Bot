@@ -13,7 +13,7 @@ const commandFiles = readdirSync("./services/bot/commands", { recursive: true })
 commandFiles.forEach((commandFile) => {
   const command = require(path.join(__dirname, "./services/bot/commands", commandFile.toString()));
 
-  if (command satisfies BotCommand) {
+  if (command.default satisfies BotCommand) {
     commands.push(command.default.data.toJSON());
     console.log(`Prepared the command "${command.default.data.name}" for registry.`);
   } else {
