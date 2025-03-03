@@ -5,9 +5,9 @@
   "scripts": {
     "build": "powershell.exe scripts/Build.ps1",
     "dev": "powershell.exe scripts/Dev.ps1",
-    "deployDev": "powershell.exe scripts/DeployDevCommands.ps1",
-    "deployRelease": "powershell.exe scripts/DeployReleaseCommands.ps1",
-    "createImage": "powershell.exe scripts/CreateImage.ps1"
+    "push-dev-commands": "powershell.exe scripts/push-dev-commands.ps1",
+    "push-release-commands": "powershell.exe scripts/push-release-commands.ps1",
+    "create-image": "powershell.exe scripts/create-image.ps1"
   },
   "dependencies": {
     "@discordjs/voice": "^0.18.0",
@@ -16,7 +16,7 @@
     "@typescript-eslint/eslint-plugin": "^7.5.0",
     "@typescript-eslint/parser": "^7.5.0",
     "axios": "^1.6.8",
-    "discord.js": "^14.14.1",
+    "discord.js": "^14.18.0",
     "dotenv": "^16.4.5",
     "eslint": "^8.57.0",
     "openai": "^4.48.2",

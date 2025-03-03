@@ -1,0 +1,1 @@
+export { default as BotCommand } from "./bot-command";
