@@ -10,6 +10,7 @@ async function onInteractionCreate(interaction: Interaction) {
 
   try {
     await command.execute(interaction);
+    
   } catch (error) {
     logError(error);
     if (interaction.replied || interaction.deferred) {
