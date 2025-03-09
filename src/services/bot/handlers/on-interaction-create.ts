@@ -1,6 +1,7 @@
 import { Interaction, MessageFlags } from "discord.js";
 import { log, logError } from "../../../utilities";
 import { commands } from "../command-manager";
+import createBotCommandEntry from "../../database/create-bot-command-entry";
 
 async function onInteractionCreate(interaction: Interaction) {
   if (!interaction.isChatInputCommand()) return;
@@ -10,7 +11,17 @@ async function onInteractionCreate(interaction: Interaction) {
 
   try {
     await command.execute(interaction);
-    
+    createBotCommandEntry({
+      id: 0,
+      commandName: interaction.commandName,
+      commandOptions: JSON.stringify(interaction.options.data),
+      userDiscriminator: interaction.user.username,
+      userIconUrl: interaction.user.avatarURL()!,
+      channelName: interaction.channel!.id,
+      guildName: interaction.guild!.name,
+      guildIconUrl: interaction.guild!.iconURL()!,
+      timestamp: interaction.createdTimestamp,
+    });
   } catch (error) {
     logError(error);
     if (interaction.replied || interaction.deferred) {

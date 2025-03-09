@@ -1,5 +1,6 @@
 import "dotenv/config";
-import { bot, cli } from "./services";
+import { bot, cli, db } from "./services";
 
-bot.start(process.env.BOT_TOKEN!);
+db.connectToDatabase();
 cli.start();
+bot.start(process.env.BOT_TOKEN!);

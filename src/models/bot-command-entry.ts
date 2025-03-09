@@ -1,7 +1,7 @@
 type BotCommandEntry = {
   id: number;
   commandName: string;
-  commandOptions: Map<string, any>;
+  commandOptions: string;
   userDiscriminator: string;
   userIconUrl: string;
   channelName: string;

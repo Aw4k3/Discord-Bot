@@ -6,13 +6,13 @@ import { BotCommandEntry } from "../../models";
 const commands = new Map<string, BotCommand>();
 
 function loadCommands(directory: string) {
-  const folders = readdirSync(directory);
+  const folders: string[] = readdirSync(directory);
 
   log(">>> Loading Bot Commands <<<");
 
   for (const folder of folders) {
-    const commandDirectory = `${directory}/${folder}`;
-    const commandFiles = readdirSync(commandDirectory).filter((file) => file.endsWith(".js"));
+    const commandDirectory: string = `${directory}/${folder}`;
+    const commandFiles: string[] = readdirSync(commandDirectory).filter((file) => file.endsWith(".js"));
 
     for (const file of commandFiles) {
       const command: BotCommand = require(`${commandDirectory}/${file}`).default;
@@ -24,10 +24,6 @@ function loadCommands(directory: string) {
       }
     }
   }
-}
-
-function createBotCommandEntry({ }: BotCommandEntry) {
-
 }
 
 export { commands, loadCommands };
